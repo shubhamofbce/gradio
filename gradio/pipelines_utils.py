@@ -10,11 +10,9 @@ from PIL import Image
 from gradio import components
 
 
-def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import transformers
-        from transformers import pipelines
-
     except ImportError as ie:
         raise ImportError(
             "transformers not installed. Please try `pip install transformers`"
@@ -38,7 +36,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
         return {
             "inputs": components.Audio(
@@ -48,7 +45,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -56,7 +52,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
-
     if is_transformers_pipeline_type(pipeline, "FillMaskPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -64,7 +59,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline"):
         return {
             "inputs": components.Image(
@@ -74,7 +68,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
         return {
             "inputs": [
@@ -88,7 +81,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
-
     if is_transformers_pipeline_type(pipeline, "SummarizationPipeline"):
         return {
             "inputs": components.Textbox(lines=7, label="Input", render=False),
@@ -96,7 +88,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "TextClassificationPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -104,7 +95,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -112,7 +102,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "TranslationPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -120,7 +109,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline"):
         return {
             "inputs": components.Textbox(label="Input", render=False),
@@ -128,7 +116,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline"):
         return {
             "inputs": [
@@ -148,7 +135,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
-
     if is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline"):
         return {
             "inputs": [
@@ -159,7 +145,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline"):
         return {
             "inputs": [
@@ -170,7 +155,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-
     if is_transformers_pipeline_type(pipeline, "ImageToTextPipeline"):
         return {
             "inputs": components.Image(
@@ -180,7 +164,6 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-
     if is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline"):
         return {
             "inputs": components.Image(
@@ -206,15 +189,12 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
                 ],
             ),
         }
+    raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
 
-    raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
-
-def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import diffusers
-        from diffusers import pipelines as diffuser_pipelines
-
     except ImportError as ie:
         raise ImportError(
             "diffusers not installed. Please try `pip install diffusers`"
@@ -224,7 +204,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
         cls = getattr(diffusers, class_name, None)
         return cls and isinstance(pipeline, cls)
 
-    # Handle diffuser pipelines
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionPipeline"):
         return {
             "inputs": [
@@ -256,7 +235,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionImg2ImgPipeline"):
         return {
             "inputs": [
@@ -299,7 +277,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionInpaintPipeline"):
         return {
             "inputs": [
@@ -345,7 +322,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionDepth2ImgPipeline"):
         return {
             "inputs": [
@@ -388,7 +364,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionImageVariationPipeline"):
         return {
             "inputs": [
@@ -418,7 +393,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionInstructPix2PixPipeline"):
         return {
             "inputs": [
@@ -465,7 +439,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionUpscalePipeline"):
         return {
             "inputs": [
@@ -508,5 +481,4 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-
-    raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
+    raise ValueError(f"Unsupported diffusers pipeline type: {type(pipeline)}")
