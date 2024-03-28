@@ -559,6 +559,7 @@ def sanitize_list_for_csv(values: list[Any]) -> list[Any]:
     for value in values:
         if isinstance(value, list):
             sanitized_value = [sanitize_value_for_csv(v) for v in value]
+            
             sanitized_values.append(sanitized_value)
         else:
             sanitized_value = sanitize_value_for_csv(value)
